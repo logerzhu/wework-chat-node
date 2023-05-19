@@ -37,6 +37,7 @@ class WeWorkChat : public Napi::ObjectWrap<WeWorkChat>{
     Napi::Value EndFetchData(const Napi::CallbackInfo& info);
     Napi::Value StartFetchData(const Napi::CallbackInfo& info);
     Napi::Value GetMediaData(const Napi::CallbackInfo& info);
+    Napi::Value GetChat(const Napi::CallbackInfo& info);
         
     int64_t parseJsonData(TsfnContext *context,const char *data);
     static void* fetchData(TsfnContext *context,void *arg);

@@ -1,4 +1,4 @@
-﻿// All Rights Reserved.
+// All Rights Reserved.
 // *File £º WeWorkFinanceSdk_C.h
 // @Brief£ºÀ­È¡ÆóÒµÁÄÌì¼ÇÂ¼ÓëÃ½ÌåÏûÏ¢sdkÍ·ÎÄ¼þ
 
@@ -28,7 +28,7 @@ typedef struct Slice_t {
 typedef struct MediaData {
     char* outindexbuf;
     int out_len;
-    char* data;
+    char* data;    
     int data_len;
     int is_finish;
 } MediaData_t;
@@ -36,19 +36,19 @@ typedef struct MediaData {
 
 #ifdef __cplusplus
 extern "C" {
-#endif
+#endif    
 
     WeWorkFinanceSdk_t* NewSdk();
-
+                               
 
 	/**
 	 * ³õÊ¼»¯º¯Êý
 	 * ReturnÖµ=0±íÊ¾¸ÃAPIµ÷ÓÃ³É¹¦
-	 *
+	 * 
 	 * @param [in]  sdk			NewSdk·µ»ØµÄsdkÖ¸Õë
 	 * @param [in]  corpid      µ÷ÓÃÆóÒµµÄÆóÒµid£¬ÀýÈç£ºwwd08c8exxxx5ab44d£¬¿ÉÒÔÔÚÆóÒµÎ¢ÐÅ¹ÜÀí¶Ë--ÎÒµÄÆóÒµ--ÆóÒµÐÅÏ¢²é¿´
 	 * @param [in]  secret		ÁÄÌìÄÚÈÝ´æµµµÄSecret£¬¿ÉÒÔÔÚÆóÒµÎ¢ÐÅ¹ÜÀí¶Ë--¹ÜÀí¹¤¾ß--ÁÄÌìÄÚÈÝ´æµµ²é¿´
-	 *
+	 *						
 	 *
 	 * @return ·µ»ØÊÇ·ñ³õÊ¼»¯³É¹¦
 	 *      0   - ³É¹¦
@@ -59,7 +59,7 @@ extern "C" {
 	/**
 	 * À­È¡ÁÄÌì¼ÇÂ¼º¯Êý
 	 * ReturnÖµ=0±íÊ¾¸ÃAPIµ÷ÓÃ³É¹¦
-	 *
+	 * 
 	 *
 	 * @param [in]  sdk				NewSdk·µ»ØµÄsdkÖ¸Õë
 	 * @param [in]  seq				´ÓÖ¸¶¨µÄseq¿ªÊ¼À­È¡ÏûÏ¢£¬×¢ÒâµÄÊÇ·µ»ØµÄÏûÏ¢´Óseq+1¿ªÊ¼·µ»Ø£¬seqÎªÖ®Ç°½Ó¿Ú·µ»ØµÄ×î´óseqÖµ¡£Ê×´ÎÊ¹ÓÃÇëÊ¹ÓÃseq:0
@@ -74,8 +74,8 @@ extern "C" {
 	 *
 	 * @return ·µ»ØÊÇ·ñµ÷ÓÃ³É¹¦
 	 *      0   - ³É¹¦
-	 *      !=0 - Ê§°Ü
-	 */
+	 *      !=0 - Ê§°Ü	
+	 */		
     int GetChatData(WeWorkFinanceSdk_t* sdk, unsigned long long seq, unsigned int limit, const char *proxy,const char* passwd, int timeout,Slice_t* chatDatas);
 
 	/**
@@ -92,7 +92,7 @@ extern "C" {
 	/**
 	 * À­È¡Ã½ÌåÏûÏ¢º¯Êý
 	 * ReturnÖµ=0±íÊ¾¸ÃAPIµ÷ÓÃ³É¹¦
-	 *
+	 * 
 	 *
 	 * @param [in]  sdk				NewSdk·µ»ØµÄsdkÖ¸Õë
 	 * @param [in]  sdkFileid		´ÓGetChatData·µ»ØµÄÁÄÌìÏûÏ¢ÖÐ£¬Ã½ÌåÏûÏ¢°üÀ¨µÄsdkfileid
@@ -101,7 +101,7 @@ extern "C" {
 	 * @param [in]  indexbuf		Ã½ÌåÏûÏ¢·ÖÆ¬À­È¡£¬ÐèÒªÌîÈëÃ¿´ÎÀ­È¡µÄË÷ÒýÐÅÏ¢¡£Ê×´Î²»ÐèÒªÌîÐ´£¬Ä¬ÈÏÀ­È¡512k£¬ºóÐøÃ¿´Îµ÷ÓÃÖ»ÐèÒª½«ÉÏ´Îµ÷ÓÃ·µ»ØµÄoutindexbufÌîÈë¼´¿É¡£
 	 * @param [in]  timeout			³¬Ê±Ê±¼ä£¬µ¥Î»Ãë
 	 * @param [out] media_data		·µ»Ø±¾´ÎÀ­È¡µÄÃ½ÌåÊý¾Ý.MediaData½á¹¹Ìå.ÄÚÈÝ°üÀ¨data(Êý¾ÝÄÚÈÝ)/outindexbuf(ÏÂ´ÎË÷Òý)/is_finish(À­È¡Íê³É±ê¼Ç)
-
+	 
 	 *
 	 * @return ·µ»ØÊÇ·ñµ÷ÓÃ³É¹¦
 	 *      0   - ³É¹¦
@@ -112,7 +112,7 @@ extern "C" {
 
     /**
      * @brief ÊÍ·Åsdk£¬ºÍNewSdk³É¶ÔÊ¹ÓÃ
-     * @return
+     * @return 
      */
     void DestroySdk(WeWorkFinanceSdk_t* sdk);
 
@@ -122,7 +122,7 @@ extern "C" {
 
     /**
      * @brief ÊÍ·Åslice£¬ºÍNewSlice³É¶ÔÊ¹ÓÃ
-     * @return
+     * @return 
      */
     void FreeSlice(Slice_t* slice);
 
@@ -149,4 +149,4 @@ extern "C" {
 
 #ifdef __cplusplus
 }
-#endif
+#endif    

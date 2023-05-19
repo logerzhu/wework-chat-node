@@ -1,8 +1,9 @@
 .DS_Store
 logs
 
-build/Release
+build
 
+Dockerfile
 # Dependency directories
 node_modules/
 jspm_packages/

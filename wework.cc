@@ -87,6 +87,7 @@ Napi::Object WeWorkChat::Init(Napi::Env env, Napi::Object exports) {
                   {
                    InstanceMethod("getMediaData", &WeWorkChat::GetMediaData),
                    InstanceMethod("fetchData", &WeWorkChat::StartFetchData),
+                   InstanceMethod("getChatData", &WeWorkChat::GetChat),
                    InstanceMethod("stopFetch", &WeWorkChat::EndFetchData)});
 
   Napi::FunctionReference* constructor = new Napi::FunctionReference();
@@ -146,13 +147,113 @@ Napi::Value WeWorkChat::EndFetchData(const Napi::CallbackInfo& info) {
     return Napi::Number::New(info.Env(), this->seq_);
 }
 
-/*
-WeWorkChat::~WeWorkChat(void)
-{
-    cout << "Object is being deleted" << endl;
-    //DestroySdk(this->sdk_);
+Napi::Value WeWorkChat::GetChat(const Napi::CallbackInfo& info){
+    Napi::Env env = info.Env();
+
+    int length = info.Length();
+
+    if (length <= 0 || !info[0].IsObject()) {
+        Napi::TypeError::New(env, "Expected one object argument").ThrowAsJavaScriptException();
+    }
+
+    Napi::Object obj = info[0].As<Napi::Object>();
+   
+    std::string sdk_fileid = obj.Get("max_results").ToString();
+    std::int64_t seq = obj.Get("seq").ToNumber();
+    std::int64_t timeout = obj.Get("timeout").ToNumber();
+    if (!seq) seq= 0;
+    
+    Slice_t *chatDatas = NewSlice();
+    // getchatdata api
+    const int numOfRetries = 3;
+    int cnt = 1;
+    int ret = 0;
+    do {
+        ret = GetChatData(this->sdk_, seq, max_results, "", "", timeout, chatDatas);
+        if   (ret >= 10001 && ret <= 10003){
+            //cout << "\t try number#" << cnt <<" fail \n";
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            ++cnt;
+        } else{
+            break;
+        }
+    }while (cnt <= numOfRetries);
+    
+    if (ret != 0)
+    {
+        printf("%sGetChatData err ret:%d\n",ERROR_PREFIX.c_str(), ret);
+        char errMsg[256];
+        sprintf(errMsg, "%sGetChatData err ret:%d\n",ERROR_PREFIX.c_str(), ret);
+        Napi::Error::New(env, errMsg).ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    
+    char *data = GetContentFromSlice(chatDatas);
+    // parse data
+ 
+    rapidjson::Document doc;
+    if (doc.Parse(data).HasParseError())
+    {
+        printf("%sparse json data error,data:%s\n",ERROR_PREFIX.c_str(), data);
+        printf("%sparse error: (%d:%zu)%s\n", ERROR_PREFIX.c_str(), doc.GetParseError(), doc.GetErrorOffset(), rapidjson::GetParseError_En(doc.GetParseError()));
+
+        Napi::Error::New(env, "parse json data error").ThrowAsJavaScriptException();
+        return env.Null();
+    }
+    if (doc.HasMember("errcode"))
+    {
+        int errcode = doc["errcode"].GetInt();
+        if (errcode != 0)
+        {
+            string errMsg = doc["errmsg"].GetString();
+            printf("%sget chat message error:%s.\n",ERROR_PREFIX.c_str(), errMsg.c_str());
+            Napi::Error::New(env, "get chat message error").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+    }
+    const rapidjson::Value &chatData = doc["chatdata"];
+    Napi::Array data_array = Napi::Array::New(info.Env(), chatData.Size());
+    Napi::Object retObj = Napi::Object::New(env);
+    
+    unsigned int dataSize =chatData.Size();
+    int64_t last_seq = 0;
+    if (dataSize >0) {
+        last_seq =chatData[dataSize-1]["seq"].GetInt64();
+    }
+    for (SizeType i = 0; i < dataSize; ++i)
+    {
+        //cout << "current seq:" <<chatData[i]["seq"].GetInt64()<<endl;
+        string encryptRandomKey = chatData[i]["encrypt_random_key"].GetString();
+        //cout << "encrypt_random_key: " << encryptRandomKey << endl;
+        string encryptChatMsg = chatData[i]["encrypt_chat_msg"].GetString();
+        //cout << "encrypt_chat_msg: " << encryptChatMsg << endl;
+        string encrypt_key = rsa_pri_decrypt(encryptRandomKey, this->private_key_.c_str());
+        //cout << "encrypt_key: " << encrypt_key << endl;
+        if (encrypt_key.length()==0) {
+            cout <<"random_key:"<<encryptRandomKey<<endl;
+            cout <<"encrypt_chat_msg:"<<encryptChatMsg<<endl;
+            cout <<"private_key_:"<<this->private_key_<<endl;
+            continue;
+        }
+        Slice_t *slice_msg = NewSlice();
+        
+        int ret = DecryptData(encrypt_key.c_str(), encryptChatMsg.c_str(), slice_msg);
+        if (ret != 0){
+            cout << ERROR_PREFIX <<"Decrypt Data error:"<<ret<< endl;
+            continue;
+        }
+  
+        
+        char *msg_data = GetContentFromSlice(slice_msg);
+        data_array[i] = Napi::String::New(info.Env(), msg_data);
+        FreeSlice(slice_msg);
+    }
+    retObj.Set("last_seq", Napi::Number::New(env,last_seq));
+    retObj.Set("data", data_array);
+    FreeSlice(chatDatas);
+    return retObj;
 }
-*/
+
 void* WeWorkChat::fetchData(TsfnContext *context, void *this__) {
     WeWorkChat * this_ =  static_cast<WeWorkChat*>(this__);
     
@@ -393,7 +494,7 @@ std::string rsa_pri_decrypt(const std::string &cipherText,const char *priKey)
     rsa = PEM_read_bio_RSAPrivateKey(keybio, &rsa, NULL, NULL);
     if(rsa == NULL)
     {
-        printf("%sERROR_PREFIXFailed to create RSA.\n",ERROR_PREFIX.c_str());
+        printf("%sFailed to create RSA.\n",ERROR_PREFIX.c_str());
         return "";
     }
     int len = RSA_size(rsa);
